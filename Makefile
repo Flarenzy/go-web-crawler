@@ -9,5 +9,8 @@ build:
 run: build
 		@./crawler
 
+test:
+		@go test ./...
+
 clean:
 		@rm -f crawler || true
