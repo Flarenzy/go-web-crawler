@@ -10,7 +10,7 @@ run: build
 		@./crawler
 
 test:
-		@go test ./...
+		@go test -v -race ./...
 
 clean:
 		@rm -f crawler || true
