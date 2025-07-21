@@ -1,6 +1,9 @@
 package main
 
-import "testing"
+import (
+	"os"
+	"testing"
+)
 
 func TestNormalizeUrl(t *testing.T) {
 	tests := []struct {
@@ -37,4 +40,18 @@ func TestNormalizeUrl(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestGetUrlFromBody(t *testing.T) {
+	rawBaseURL := "https://debian-handbook.info/"
+	fp, err := os.ReadFile("debian-handbook.txt")
+	if err != nil {
+		t.Fatalf("Expected debian-handbook.txt but got err %v", err)
+	}
+	rawHTML := string(fp)
+	rawURLs, err := getURLsFromHTML(rawHTML, rawBaseURL)
+	if err != nil {
+		t.Fatalf("Expected nil but got %v", err)
+	}
+	_ = rawURLs
 }
