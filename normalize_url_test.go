@@ -54,6 +54,6 @@ func TestGetUrlFromBody(t *testing.T) {
 		t.Fatalf("Expected nil but got %v", err)
 	}
 	if len(rawURLs) != 38 {
-		t.Errorf("expected num of urls was 38, got", len(rawURLs))
+		t.Errorf("expected num of urls was 38, got %v", len(rawURLs))
 	}
 }
