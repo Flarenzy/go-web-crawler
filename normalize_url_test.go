@@ -53,9 +53,7 @@ func TestGetUrlFromBody(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Expected nil but got %v", err)
 	}
-	t.Log("Found urls:")
-	t.Logf("Len of rawURLS: %v", len(rawURLs))
-	for _, rawURL := range rawURLs {
-		t.Logf("%s", rawURL)
+	if len(rawURLs) != 38 {
+		t.Errorf("expected num of urls was 38, got", len(rawURLs))
 	}
 }
