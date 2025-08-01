@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"net/url"
 	"os"
 )
 
@@ -15,6 +16,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	baseURL := args[0]
-	fmt.Printf("starting crawl of: %s\n", baseURL)
+	rawURL := args[0]
+	parsedURL, err := url.Parse(rawURL)
+	if err != nil {
+		fmt.Printf("couldnt parse url %v\n", rawURL)
+		os.Exit(1)
+	}
+	fmt.Printf("starting crawl of: %s://%s\n", parsedURL.Scheme, parsedURL.Host)
 }

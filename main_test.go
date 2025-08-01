@@ -29,11 +29,11 @@ func TestMain_TooManyArgs(t *testing.T) {
 }
 
 func TestMain_ValidArg(t *testing.T) {
-	output, exitCode := runMainWithArgs("example.com")
+	output, exitCode := runMainWithArgs("https://example.com")
 	if exitCode != 0 {
 		t.Errorf("expected exit code 0, got %d", exitCode)
 	}
-	if !strings.Contains(output, "starting crawl of: example.com") {
+	if !strings.Contains(output, "starting crawl of: https://example.com") {
 		t.Errorf("unexpected output: %s", output)
 	}
 }
