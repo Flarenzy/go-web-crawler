@@ -42,8 +42,48 @@ func TestNormalizeUrl(t *testing.T) {
 	}
 }
 
+func TestAppendBaseUrl(t *testing.T) {
+	data := []struct {
+		BaseURL     string
+		HREFUrl     string
+		ExpectedURL string
+	}{
+		{
+			BaseURL:     "https://debian.org",
+			HREFUrl:     "/admin",
+			ExpectedURL: "https://debian.org/admin",
+		},
+		{
+			BaseURL:     "https://debian.org/",
+			HREFUrl:     "/admin",
+			ExpectedURL: "https://debian.org/admin"},
+		{
+			BaseURL:     "https://debian.org",
+			HREFUrl:     "facebook.com",
+			ExpectedURL: "https://debian.org/facebook.com",
+		},
+		{
+			BaseURL:     "https://debian.org",
+			HREFUrl:     "",
+			ExpectedURL: "https://debian.org",
+		},
+		{
+			BaseURL:     "https://debian.org",
+			HREFUrl:     "//facebook.com",
+			ExpectedURL: "https://facebook.com",
+		},
+	}
+
+	for _, d := range data {
+		resURL := appendBaseURL(d.BaseURL, d.HREFUrl)
+		if resURL != d.ExpectedURL {
+			t.Errorf("expected result to be %s but got %s", d.ExpectedURL, resURL)
+		}
+	}
+}
+
 func TestGetUrlFromBody(t *testing.T) {
-	rawBaseURL := "https://debian-handbook.info/"
+	rawBaseURL := "https://debian-handbook.info"
 	fp, err := os.ReadFile("debian-handbook.txt")
 	if err != nil {
 		t.Fatalf("Expected debian-handbook.txt but got err %v", err)

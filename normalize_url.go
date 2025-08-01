@@ -18,10 +18,18 @@ func normalizeURL(rawURL string) (string, error) {
 }
 
 func appendBaseURL(baseURL, hrefURL string) string {
-	if strings.HasPrefix(hrefURL, "/") {
-		return fmt.Sprintf("%s%s", baseURL, hrefURL)
+	if hrefURL == "" {
+		return baseURL
 	}
-	return hrefURL
+	base, err := url.Parse(baseURL)
+	if err != nil {
+		return ""
+	}
+	ref, err := url.Parse(hrefURL)
+	if err != nil {
+		return ""
+	}
+	return base.ResolveReference(ref).String()
 }
 
 func getURLsFromHTML(htmlBody, rawBaseURL string) ([]string, error) {
