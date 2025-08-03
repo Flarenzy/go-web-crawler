@@ -23,4 +23,10 @@ func main() {
 		os.Exit(1)
 	}
 	fmt.Printf("starting crawl of: %s://%s\n", parsedURL.Scheme, parsedURL.Host)
+	rawHTML, err := getHTML(rawURL)
+	if err != nil {
+		fmt.Printf("couldnt get url %v", err.Error())
+		os.Exit(1)
+	}
+	fmt.Println(rawHTML)
 }

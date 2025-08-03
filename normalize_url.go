@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"io"
+	"net/http"
 	"net/url"
 	"strings"
 
@@ -58,4 +60,25 @@ func getURLsFromHTML(htmlBody, rawBaseURL string) ([]string, error) {
 	traverse(n)
 
 	return rawURLs, nil
+}
+
+func getHTML(rawURL string) (string, error) {
+	res, err := http.Get(rawURL)
+	if err != nil {
+		return "", err
+	}
+	if res.StatusCode >= 400 {
+		return "", fmt.Errorf("error getting link, http code %v", res.Status)
+	}
+	contentType := res.Header.Get("content-type")
+	if !strings.Contains(contentType, "text/html") {
+		return "", fmt.Errorf("expected html content type but got %v", contentType)
+	}
+
+	buff, err := io.ReadAll(res.Body)
+	if err != nil {
+		return "", err
+	}
+	defer res.Body.Close()
+	return string(buff), nil
 }
