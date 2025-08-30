@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func TestMain_NoArgs(t *testing.T) {
+func TestMainNoArgs(t *testing.T) {
 	output, exitCode := runMainWithArgs()
 	if exitCode != 1 {
 		t.Errorf("expected exit code 1, got %d", exitCode)
@@ -18,7 +18,7 @@ func TestMain_NoArgs(t *testing.T) {
 	}
 }
 
-func TestMain_TooManyArgs(t *testing.T) {
+func TestMainTooManyArgs(t *testing.T) {
 	output, exitCode := runMainWithArgs("one", "two")
 	if exitCode != 1 {
 		t.Errorf("expected exit code 1, got %d", exitCode)
@@ -28,7 +28,7 @@ func TestMain_TooManyArgs(t *testing.T) {
 	}
 }
 
-func TestMain_ValidArg(t *testing.T) {
+func TestMainValidArg(t *testing.T) {
 	output, exitCode := runMainWithArgs("https://example.com")
 	if exitCode != 0 {
 		t.Errorf("expected exit code 0, got %d", exitCode)
