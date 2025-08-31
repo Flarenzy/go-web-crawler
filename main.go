@@ -62,7 +62,7 @@ func main() {
 			os.Exit(1)
 		}
 	} else {
-		maxPages = 200
+		maxPages = 10
 	}
 
 	parsedURL, err := url.Parse(rawURL)

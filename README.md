@@ -8,3 +8,11 @@ go build -o crawler && ./crawler <website-url>
 ```
 The crawler also takes 2 positional arguments after the url, maxConcurency and maxPages. The first one defines the max amount of goroutines to spawn and the second the max amount of pages to crawl on that website.
 Note that the crawler crawl each page only once and for each visit after that just increments the time found counter.
+
+## Examples
+
+Crawl the url with default concurency and maxPage settings:
+`go build -o crawler && ./crawler <website-url> `
+
+Crawl with 10 concurent workers and a max of 100 pages:
+`go build -o crawler && ./crawler <website-url> 10 100`
