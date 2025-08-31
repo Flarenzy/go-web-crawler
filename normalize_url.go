@@ -5,17 +5,25 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"path"
 	"strings"
 
 	"golang.org/x/net/html"
 )
 
+// TODO: urls should all be lowercase, there can be multiple / at the end of path
 func normalizeURL(rawURL string) (string, error) {
 	parsedURL, err := url.Parse(rawURL)
 	if err != nil {
 		return "", err
 	}
-	normalizedURL, _ := strings.CutSuffix(fmt.Sprintf("%s%s", parsedURL.Host, parsedURL.Path), "/")
+	p := path.Clean(parsedURL.Path)
+	if p == "/" {
+		p = ""
+	}
+	lowerCaseHost := strings.ToLower(parsedURL.Host)
+	lowerCasePath := strings.ToLower(p)
+	normalizedURL := fmt.Sprintf("%s%s", lowerCaseHost, lowerCasePath)
 	return normalizedURL, nil
 }
 
@@ -34,6 +42,22 @@ func appendBaseURL(baseURL, hrefURL string) string {
 	return base.ResolveReference(ref).String()
 }
 
+func isAsset(rawURL string) bool {
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return false
+	}
+
+	ext := strings.ToLower(path.Ext(u.Path))
+	deny := map[string]struct{}{
+		".png": {}, ".jpg": {}, ".jpeg": {}, ".gif": {}, ".svg": {},
+		".css": {}, ".js": {}, ".mp4": {}, ".webm": {}, ".ico": {},
+		".pdf": {},
+	}
+	_, blocked := deny[ext]
+	return blocked
+}
+
 func getURLsFromHTML(htmlBody, rawBaseURL string) ([]string, error) {
 	n, err := html.Parse(strings.NewReader(htmlBody))
 	if err != nil {
@@ -43,10 +67,13 @@ func getURLsFromHTML(htmlBody, rawBaseURL string) ([]string, error) {
 
 	var traverse func(node *html.Node)
 	traverse = func(node *html.Node) {
-		if node.Type == html.ElementNode {
+		if node.Type == html.ElementNode && node.Data == "a" {
 			for _, atr := range node.Attr {
-				if atr.Key == "href" {
+				if atr.Key == "href" && !strings.HasPrefix(atr.Val, "#") {
 					appendURL := appendBaseURL(rawBaseURL, atr.Val)
+					if isAsset(appendURL) {
+						continue
+					}
 					rawURLs = append(rawURLs, appendURL)
 				}
 			}
