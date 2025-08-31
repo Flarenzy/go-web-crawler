@@ -24,17 +24,14 @@ func (cfg *config) isInternal(raw string) bool {
 	return strings.EqualFold(cfg.baseURL.Hostname(), cu.Hostname())
 }
 
-func (cfg *config) crawledMaxPages() bool {
-	cfg.mu.Lock()
-	defer cfg.mu.Unlock()
-	return len(cfg.pages) >= cfg.maxPages
-}
-
 func (cfg *config) addPageVisit(normalizedURL string) (isFirst bool) {
 	cfg.mu.Lock()
 	defer cfg.mu.Unlock()
 	if cfg.pages[normalizedURL] > 0 {
 		cfg.pages[normalizedURL]++
+		return false
+	}
+	if len(cfg.pages) >= cfg.maxPages {
 		return false
 	}
 	cfg.pages[normalizedURL] = 1
@@ -49,9 +46,6 @@ func (cfg *config) crawlPage(rawCurrentURL string) {
 		cfg.wg.Done()
 	}()
 
-	if cfg.crawledMaxPages() {
-		return
-	}
 	if !cfg.isInternal(rawCurrentURL) {
 		return
 	}
