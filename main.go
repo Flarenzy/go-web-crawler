@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"sync"
 )
 
 func main() {
@@ -23,10 +24,17 @@ func main() {
 		os.Exit(1)
 	}
 	fmt.Printf("starting crawl of: %s://%s\n", parsedURL.Scheme, parsedURL.Host)
-	urlCount := make(map[string]int)
-	crawlPage(rawURL, rawURL, urlCount)
-
-	for k, v := range urlCount {
+	concControlCH := make(chan struct{}, 5)
+	cfg := config{
+		pages:              make(map[string]int),
+		baseURL:            parsedURL,
+		mu:                 &sync.Mutex{},
+		concurrencyControl: concControlCH,
+		wg:                 &sync.WaitGroup{},
+	}
+	cfg.crawlPage(rawURL)
+	cfg.wg.Wait()
+	for k, v := range cfg.pages {
 		fmt.Printf("Found URL %s %v many times\n", k, v)
 	}
 }

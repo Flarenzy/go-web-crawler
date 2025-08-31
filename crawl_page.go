@@ -3,16 +3,45 @@ package main
 import (
 	"net/url"
 	"strings"
+	"sync"
 )
 
-func isInternal(base, raw string) bool {
-	bu, _ := url.Parse(base)
-	cu, _ := url.Parse(raw)
-	return strings.EqualFold(bu.Hostname(), cu.Hostname())
+type config struct {
+	pages              map[string]int
+	baseURL            *url.URL
+	mu                 *sync.Mutex
+	concurrencyControl chan struct{}
+	wg                 *sync.WaitGroup
 }
 
-func crawlPage(rawBaseURL, rawCurrentURL string, pages map[string]int) {
-	if !isInternal(rawBaseURL, rawCurrentURL) {
+func (cfg *config) isInternal(raw string) bool {
+	cu, err := url.Parse(raw)
+	if err != nil {
+		return false
+	}
+	return strings.EqualFold(cfg.baseURL.Hostname(), cu.Hostname())
+}
+
+func (cfg *config) addPageVisit(normalizedURL string) (isFirst bool) {
+	cfg.mu.Lock()
+	defer cfg.mu.Unlock()
+	if cfg.pages[normalizedURL] > 0 {
+		cfg.pages[normalizedURL]++
+		return false
+	}
+	cfg.pages[normalizedURL] = 1
+	return true
+}
+
+func (cfg *config) crawlPage(rawCurrentURL string) {
+	cfg.wg.Add(1)
+	cfg.concurrencyControl <- struct{}{}
+	defer func() {
+		<-cfg.concurrencyControl
+		cfg.wg.Done()
+	}()
+
+	if !cfg.isInternal(rawCurrentURL) {
 		return
 	}
 
@@ -21,11 +50,9 @@ func crawlPage(rawBaseURL, rawCurrentURL string, pages map[string]int) {
 		return
 	}
 
-	if pages[key] > 0 { // already seen, skip fetch
-		pages[key]++
+	if !cfg.addPageVisit(key) {
 		return
 	}
-	pages[key] = 1
 
 	html, err := getHTML(rawCurrentURL)
 	if err != nil {
@@ -37,6 +64,6 @@ func crawlPage(rawBaseURL, rawCurrentURL string, pages map[string]int) {
 		return
 	}
 	for _, u := range links {
-		crawlPage(rawBaseURL, u, pages)
+		go cfg.crawlPage(u)
 	}
 }
