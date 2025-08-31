@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/url"
 	"strings"
 	"sync"
@@ -8,6 +9,7 @@ import (
 
 type config struct {
 	pages              map[string]int
+	maxPages           int
 	baseURL            *url.URL
 	mu                 *sync.Mutex
 	concurrencyControl chan struct{}
@@ -20,6 +22,12 @@ func (cfg *config) isInternal(raw string) bool {
 		return false
 	}
 	return strings.EqualFold(cfg.baseURL.Hostname(), cu.Hostname())
+}
+
+func (cfg *config) crawledMaxPages() bool {
+	cfg.mu.Lock()
+	defer cfg.mu.Unlock()
+	return len(cfg.pages) >= cfg.maxPages
 }
 
 func (cfg *config) addPageVisit(normalizedURL string) (isFirst bool) {
@@ -41,6 +49,9 @@ func (cfg *config) crawlPage(rawCurrentURL string) {
 		cfg.wg.Done()
 	}()
 
+	if cfg.crawledMaxPages() {
+		return
+	}
 	if !cfg.isInternal(rawCurrentURL) {
 		return
 	}
@@ -58,7 +69,7 @@ func (cfg *config) crawlPage(rawCurrentURL string) {
 	if err != nil {
 		return
 	}
-
+	fmt.Printf("Starting crawl of page %v\n", rawCurrentURL)
 	links, err := getURLsFromHTML(html, rawCurrentURL)
 	if err != nil {
 		return
